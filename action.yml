@@ -61,7 +61,7 @@ inputs:
     description: |
       URL for ORT Docker image to use.
     required: false
-    default: 'ghcr.io/alliander-opensource/ort-container:latest'
+    default: 'ghcr.io/alliander-opensource/ort-container-pr-6053:date-20221128'
   log-level:
     description: |
       Set value to 'debug' to see additional debug output to help tracking down errors.
@@ -76,6 +76,7 @@ inputs:
     description: |
       List of arguments to pass to ORT Analyzer CLI.
     required: false
+    default: '--package-managers NPM,Yarn,Yarn2'
   ort-cli-scan-args:
     description: |
       List of arguments to pass to ORT Scanner CLI.
@@ -124,7 +125,7 @@ inputs:
     description: |
       Comma-separated list of optional workflow steps to run.
     required: false
-    default: 'cache-dependencies,analyzer' #cache-dependencies,analyzer,scanner,evaluator,advisor,reporter,upload-results'
+    default: 'cache-dependencies,analyzer,evaluator' #cache-dependencies,analyzer' #cache-dependencies,analyzer,scanner,evaluator,advisor,reporter,upload-results'
   sw-name:
     description: |
       Name of project, product or component to be scanned.
@@ -230,13 +231,10 @@ runs:
         POSTGRES_PASSWORD: ${{ inputs.db-password }}
       run: |
         echo -e "\e[1;33m Initializing ORT in GitHub workspace... "
-        [[ -d $HOME/.config/jgit/ ]] || mkdir -p $HOME/.config/jgit/; chmod -R aug+w ${HOME}/.config/
-        [[ -d $HOME/.ort/cache/ ]] || mkdir -p $HOME/.ort/cache/
-        [[ -d $HOME/.ort/config/ ]] || mkdir -p $HOME/.ort/config/
-        [[ -d $HOME/.ort/ort-results/ ]] || mkdir $HOME/.ort/ort-results/
-        [[ -d $HOME/.ort/scanner/archive/ ]] || mkdir -p $HOME/.ort/scanner/archive/; mkdir -p $HOME/.ort/scanner/provenance/; chmod -R aug+w ${HOME}/.ort/
-        [[ -d $HOME/.gradle/ ]] || mkdir -p $HOME/.gradle/; chmod -R aug+w ${HOME}/.gradle/
-        [[ -d $HOME/.rustup/tmp ]] || mkdir -p $HOME/.rustup/tmp; chmod -R aug+w ${HOME}/.rustup/
+        mkdir -p $HOME/.config/jgit/; chmod -R aug+w ${HOME}/.config/
+        mkdir -p $HOME/.ort/{cache,config,ort-results,scanner/archive/,scanner/provenance/}; chmod -R aug+w ${HOME}/.ort/
+        mkdir -p $HOME/.gradle/; chmod -R aug+w ${HOME}/.gradle/
+        mkdir -p $HOME/.rustup/{cache,download,tmp}; chmod -R aug+w ${HOME}/.rustup/
         chmod -R aug+w ${{ github.workspace }}/
         export ORT_CONFIG_DIR="${HOME}/.ort/config"
         [[ -z "$(ls -A ${ORT_CONFIG_DIR})" ]] && export ORT_CONFIG_DIR_IS_EMPTY=true || export ORT_CONFIG_DIR_IS_EMPTY=false
@@ -259,8 +257,9 @@ runs:
         if [[ ! -z "${SW_VERSION}" ]]; then
           export ORT_RESULTS_NAME="${ORT_RESULTS_NAME}-${SW_VERSION}"
         fi
-        printenv >> "$GITHUB_ENV"
         echo "ORT_RESULTS_NAME: ${ORT_RESULTS_NAME}"
+        ls -all ~/
+        printenv >> "$GITHUB_ENV"
     - name: Shallow clone ort-config repository
       shell: bash
       env:
@@ -328,26 +327,26 @@ runs:
     #       download \
     #       ORT_CLI_DOWNLOAD_ARGS \
     #       -o /workspace
-    - name: Debug ORT Docker image issues
-      shell: bash
-      run: |
-        echo -e "\e[1;33m Running debug ORT Docker image issues... "
-        docker run \
-        --mount type=bind,source=${{ github.workspace }}/,target=/workspace \
-        --mount type=bind,source=/etc/group,target=/etc/group,readonly \
-        --mount type=bind,source=/etc/passwd,target=/etc/passwd,readonly \
-        --mount type=bind,source=/etc/shadow,target=/etc/shadow,readonly \
-        --mount type=bind,source=/tmp,target=/tmp \
-        --mount type=bind,source=$HOME,target=/home/ort \
-        --mount type=bind,source=$HOME,target=$HOME \
-        -e XDG_CONFIG_HOME="$HOME/.config/" \
-        -e JDK_JAVA_OPTIONS="--illegal-access=warn -Xmx5120m" \
-        -e ORT_DATA_DIR="$HOME/ort/.ort/" \
-        -e GRADLE_USER_HOME="$HOME/ort/.gradle" \
-        --entrypoint "" \
-        --user $UID:$GID \
-        $ORT_DOCKER_IMAGE \
-        /bin/bash -c "rustup show; echo "aaa ${CARGO_HOME}"; ls -all /opt/rust/rustup/; echo "bbb ${RUSTUP_HOME}"; /opt/rust/rustup/tmp/"
+    # - name: Debug ORT Docker image issues
+    #   shell: bash
+    #   run: |
+    #     echo -e "\e[1;33m Running debug ORT Docker image issues... "
+    #     docker run \
+    #     --mount type=bind,source=${{ github.workspace }}/,target=/workspace \
+    #     --mount type=bind,source=/etc/group,target=/etc/group,readonly \
+    #     --mount type=bind,source=/etc/passwd,target=/etc/passwd,readonly \
+    #     --mount type=bind,source=/etc/shadow,target=/etc/shadow,readonly \
+    #     --mount type=bind,source=/tmp,target=/tmp \
+    #     --mount type=bind,source=$HOME,target=/home/ort \
+    #     --mount type=bind,source=$HOME,target=$HOME \
+    #     -e XDG_CONFIG_HOME="$HOME/.config/" \
+    #     -e JDK_JAVA_OPTIONS="--illegal-access=warn -Xmx5120m" \
+    #     -e ORT_DATA_DIR="$HOME/ort/.ort/" \
+    #     -e GRADLE_USER_HOME="$HOME/ort/.gradle" \
+    #     --entrypoint "" \
+    #     --user $UID:$GID \
+    #     $ORT_DOCKER_IMAGE \
+    #     /bin/bash -c "cd /workspace; /opt/nvm/versions/node/v16.17.1/lib/node_modules/yarn/bin/yarn install --ignore-scripts --ignore-engines"
 
     
     #     /bin/bash -c "ls -all $HOME; echo "aaa"; ls -all /opt/rust/cargo/bin; cd /workspace/rust/perspective-viewer; /opt/rust/cargo/bin/cargo metadata --format-version=1"
@@ -384,7 +383,7 @@ runs:
           ORT_CLI_ANALYZE_ARGS="${ORT_CLI_ANALYZE_ARGS} -l SW_VERSION=${SW_VERSION}"
         fi
         echo "ORT_CLI_ANALYZE_ARGS: ${ORT_CLI_ANALYZE_ARGS}"
-        docker run \
+        sudo docker run \
         --mount type=bind,source=${{ github.workspace }}/,target=/workspace \
         --mount type=bind,source=/etc/group,target=/etc/group,readonly \
         --mount type=bind,source=/etc/passwd,target=/etc/passwd,readonly \
@@ -395,6 +394,9 @@ runs:
         -e GRADLE_USER_HOME="${HOME}/.gradle" \
         -e JDK_JAVA_OPTIONS="--illegal-access=warn -Xmx5120m" \
         -e ORT_DATA_DIR="${HOME}/.ort/" \
+        -e CARGO_HOME="/home/ort/.cargo/" \
+        -e RUSTUP_HOME="/home/ort/.rustup/" \
+        -e TMP_DIR="/home/ort/.rustup/tmp/" \
         $ORT_DOCKER_CLI_ARGS \
         $ORT_DOCKER_IMAGE \
         --$ORT_LOG_LEVEL \
@@ -418,8 +420,9 @@ runs:
         --mount type=bind,source=${{ github.workspace }}/,target=/workspace \
         --mount type=bind,source=/etc/group,target=/etc/group,readonly \
         --mount type=bind,source=/etc/passwd,target=/etc/passwd,readonly \
-        --mount type=bind,source=/tmp,target=/tmp \
         --mount type=bind,source=$HOME,target=/home/ort \
+        --mount type=bind,source=$HOME,target=$HOME \
+        --mount type=bind,source=/tmp,target=/tmp \
         -v ${SSH_AUTH_SOCK}:/ssh.socket \
         -e GRADLE_USER_HOME="/home/ort/.gradle" \
         -e JDK_JAVA_OPTIONS="--illegal-access=warn -Xmx5120m" \
@@ -431,12 +434,12 @@ runs:
         -e POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
         --user $UID:$GID \
         $ORT_DOCKER_CLI_ARGS \
-        $ORT_DOCKER_IMAGE \
+        ghcr.io/alliander-opensource/ort-container:latest \
         --$ORT_LOG_LEVEL \
         $ORT_CLI_ARGS \
         scan \
-        -i $ORT_DOCKER_RESULTS_CURRENT_FILE \
-        -o $ORT_DOCKER_RESULTS_DIR \
+        -i $ORT_RESULTS_CURRENT_FILE \
+        -o $ORT_RESULTS_DIR \
         -f JSON \
         ${ORT_CLI_EVALUATE_ARGS}
         [[ -f $ORT_RESULTS_SCANNER_FILE ]] && \
@@ -451,10 +454,10 @@ runs:
         docker run \
         --mount type=bind,source=/etc/group,target=/etc/group,readonly \
         --mount type=bind,source=/etc/passwd,target=/etc/passwd,readonly \
+        --mount type=bind,source=$HOME,target=/home/ort \
         --mount type=bind,source=$HOME,target=$HOME \
         -e JDK_JAVA_OPTIONS="--illegal-access=warn -Xmx5120m" \
         -e ORT_DATA_DIR="${HOME}/.ort/" \
-        --mount type=bind,source=$HOME,target=$HOME \
         -e GRADLE_USER_HOME="${HOME}/.gradle" \
         --user $UID:$GID \
         $ORT_DOCKER_CLI_ARGS \
@@ -486,7 +489,6 @@ runs:
         docker run \
         --mount type=bind,source=/etc/group,target=/etc/group,readonly \
         --mount type=bind,source=/etc/passwd,target=/etc/passwd,readonly \
-        --mount type=bind,source=/tmp,target=/tmp \
         --mount type=bind,source=$HOME,target=/home/ort \
         --mount type=bind,source=$HOME,target=$HOME \
         -e GRADLE_USER_HOME="/home/ort/.gradle" \
@@ -498,8 +500,8 @@ runs:
         --$ORT_LOG_LEVEL \
         $ORT_CLI_ARGS \
         advise \
-        -i $ORT_DOCKER_RESULTS_CURRENT_FILE \
-        -o $ORT_DOCKER_RESULTS_DIR \
+        -i $ORT_RESULTS_CURRENT_FILE \
+        -o $ORT_RESULTS_DIR \
         -a $ORT_ADVISORS \
         -f JSON \
         ${ORT_CLI_ADVISE_ARGS}
@@ -521,7 +523,6 @@ runs:
         docker run \
         --mount type=bind,source=/etc/group,target=/etc/group,readonly \
         --mount type=bind,source=/etc/passwd,target=/etc/passwd,readonly \
-        --mount type=bind,source=/tmp,target=/tmp \
         --mount type=bind,source=$HOME,target=/home/ort \
         --mount type=bind,source=$HOME,target=$HOME \
         -e GRADLE_USER_HOME="/home/ort/.gradle" \
