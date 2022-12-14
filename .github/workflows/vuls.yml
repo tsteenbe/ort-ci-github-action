@@ -1,0 +1,24 @@
+name: Scan Vuls
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  ort:
+    runs-on: ubuntu-latest
+    name: Run ORT
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: 'future-architect/vuls'
+          ref: 'v0.21.1'
+      - name: Run GitHub Action for ORT
+        uses: tsteenbe/ort-ci-github-action@pr-6225
+        with:
+          sw-name: 'VULnerability Scanner'
+          sw-version: 'v0.21.1'
+      - name: Print some folders in ~/.go
+        run: |
+          echo -e "\e[1;33m $HOME/go/pkg/mod/cache/download/github.com"
+          ls -all $HOME/go/pkg/mod/cache/download/github.com || :
