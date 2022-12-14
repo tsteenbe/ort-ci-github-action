@@ -1,0 +1,32 @@
+name: Scan SecHub
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  ort:
+    runs-on: ubuntu-latest
+    name: Run ORT
+    steps:
+      - name: Use HTTPS instead of SSH for Git cloning
+        run: git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: 'mercedes-benz/sechub'
+          ref: '2634b405438169b2ad5828909d5671cd3457a075'
+      - name: Run GitHub Action for ORT
+        uses: tsteenbe/ort-ci-github-action@pr-6225
+        with:
+          http-file-server-url: ${{ secrets.ARTIFACTORY_URL }}
+          http-file-server-token: ${{ secrets.ARTIFACTORY_TOKEN }}
+          ort-config-repository: 'https://github.com/tsteenbe/ort-config'
+          run: >
+            cache-dependencies,
+            labels,
+            analyzer,
+            scanner,
+            evaluator,
+            advisor,
+            reporter,
+            upload-results
