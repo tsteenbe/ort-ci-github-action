@@ -1,0 +1,19 @@
+name: Scan BYOCAR Sample App
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  ort:
+    runs-on: ubuntu-latest
+    name: Run ORT
+    steps:
+      - name: Use HTTPS instead of SSH for Git cloning
+        run: git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: 'tsteenbe/BYOCAR-sample-app'
+          ref: '63c3ec302a6775ed782a4582bc9671638d1782f2'
+      - name: Run GitHub Action for ORT
+        uses: tsteenbe/ort-ci-github-action@pr-6225
