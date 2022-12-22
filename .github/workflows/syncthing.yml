@@ -16,7 +16,7 @@ jobs:
           repository: 'syncthing/syncthing'
           ref: 'v1.22.2'
       - name: Run GitHub Action for ORT
-        uses: tsteenbe/ort-ci-github-action@pr-6225
+        uses: tsteenbe/ort-ci-github-action/no-docker@pr-6225
       - name: Print some folders in ~/go
         run: |
           echo -e "\e[1;33m $HOME/go/pkg/mod/cache/download/github.com"

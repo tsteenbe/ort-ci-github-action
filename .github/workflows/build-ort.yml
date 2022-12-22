@@ -1,0 +1,44 @@
+name: Build and upload ORT
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  ort:
+    runs-on: ubuntu-latest
+    name: Build and upload ORT
+    steps:
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Build ORT
+        id: ort-build
+        shell: bash
+        env:
+          ORT_REVISION: ${{ inputs.ort-revision }}
+        run: |
+          echo -e "\e[1;33m Building ORT..."
+          cd $GITHUB_WORKSPACE
+          mkdir ort
+          mkdir ort-compiled
+          cd ort
+          git clone https://github.com/oss-review-toolkit/ort.git .
+          GIT_REVISION=$(git describe --abbrev=10 --always --tags --dirty --match=[0-9]*)
+          ./gradlew --no-daemon --stacktrace -Pversion="${GIT_REVISION}" installDist
+          cp -a cli/build/install/ort "$GITHUB_WORKSPACE/ort-compiled"
+          cp -a scripts/*.sh "$GITHUB_WORKSPACE/ort-compiled/bin"
+          cp -a helper-cli/build/scripts/orth "$GITHUB_WORKSPACE/ort-compiled/bin"
+          cp -a helper-cli/build/libs/helper-cli-*.jar "$GITHUB_WORKSPACE/ort-compiled/lib"
+          echo -e "\e[1;33m Built ORT version '$(${GITHUB_WORKSPACE}/ort-compiled/bin/ort --version)'."
+          cd ..
+          rm -rf ort
+      - name: Upload ORT compiled
+        uses: actions/upload-artifact@v3
+        with:
+          name: "ort-compiled"
+          path: ${{ github.workspace }}/ort-compiled
+          if-no-files-found: warn

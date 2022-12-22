@@ -14,7 +14,7 @@ jobs:
           repository: 'future-architect/vuls'
           ref: 'v0.21.1'
       - name: Run GitHub Action for ORT
-        uses: tsteenbe/ort-ci-github-action@pr-6225
+        uses: tsteenbe/ort-ci-github-action/no-docker@pr-6225
         with:
           sw-name: 'VULnerability Scanner'
           sw-version: 'v0.21.1'

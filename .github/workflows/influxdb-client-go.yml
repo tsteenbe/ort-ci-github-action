@@ -16,7 +16,7 @@ jobs:
           repository: 'influxdata/influxdb-client-go'
           ref: 'v2.12.1'
       - name: Run GitHub Action for ORT
-        uses: tsteenbe/ort-ci-github-action@pr-6225
+        uses: tsteenbe/ort-ci-github-action/no-docker@pr-6225
         with:
           http-file-server-url: ${{ secrets.ARTIFACTORY_URL }}
           http-file-server-token: ${{ secrets.ARTIFACTORY_TOKEN }}
@@ -25,7 +25,6 @@ jobs:
             cache-dependencies,
             labels,
             analyzer,
-            scanner,
             evaluator,
             advisor,
             reporter,

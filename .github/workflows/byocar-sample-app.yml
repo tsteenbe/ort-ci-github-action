@@ -16,7 +16,7 @@ jobs:
           repository: 'tsteenbe/BYOCAR-sample-app'
           ref: '63c3ec302a6775ed782a4582bc9671638d1782f2'
       - name: Run GitHub Action for ORT
-        uses: tsteenbe/ort-ci-github-action@pr-6225
+        uses: tsteenbe/ort-ci-github-action/no-docker@pr-6225
         with:
           allow-dynamic-versions: true
           http-file-server-url: ${{ secrets.ARTIFACTORY_URL }}
@@ -26,7 +26,6 @@ jobs:
             cache-dependencies,
             labels,
             analyzer,
-            scanner,
             evaluator,
             advisor,
             reporter,
