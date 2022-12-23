@@ -23,22 +23,15 @@ jobs:
         run: |
           echo -e "\e[1;33m Building ORT..."
           cd $GITHUB_WORKSPACE
-          mkdir ort
-          mkdir ort-compiled
+          git clone https://github.com/oss-review-toolkit/ort.git
           cd ort
-          git clone https://github.com/oss-review-toolkit/ort.git .
           GIT_REVISION=$(git describe --abbrev=10 --always --tags --dirty --match=[0-9]*)
-          ./gradlew --no-daemon --stacktrace -Pversion="${GIT_REVISION}" installDist
-          cp -a cli/build/install/ort "$GITHUB_WORKSPACE/ort-compiled"
-          cp -a scripts/*.sh "$GITHUB_WORKSPACE/ort-compiled/bin"
-          cp -a helper-cli/build/scripts/orth "$GITHUB_WORKSPACE/ort-compiled/bin"
-          cp -a helper-cli/build/libs/helper-cli-*.jar "$GITHUB_WORKSPACE/ort-compiled/lib"
-          echo -e "\e[1;33m Built ORT version '$(${GITHUB_WORKSPACE}/ort-compiled/bin/ort --version)'."
-          cd ..
-          rm -rf ort
-      - name: Upload ORT compiled
+          ./gradlew --no-daemon --stacktrace -Pversion="${GIT_REVISION}" cli:installShadowDist
+          mv cli/build/install/cli-shadow/lib/*.jar $GITHUB_WORKSPACE/ort.jar
+          echo -e "\e[1;33m Built ORT version '$(java -jar ${GITHUB_WORKSPACE}/ort.jar --version)'."
+      - name: Upload ORT fatJar
         uses: actions/upload-artifact@v3
         with:
           name: "ort-compiled"
-          path: ${{ github.workspace }}/ort-compiled
+          path: ${{ github.workspace }}/ort.jar
           if-no-files-found: warn
