@@ -1,0 +1,29 @@
+name: Scan Mime Types
+on: 
+  workflow_dispatch:
+
+jobs:
+  ort:
+    runs-on: ubuntu-latest
+    name: Run ORT
+    steps:
+      - name: Use HTTPS instead of SSH for Git cloning
+        run: git config --global url.https://github.com/.insteadOf ssh://git@github.com/
+      - name: Checkout project
+        uses: actions/checkout@v3
+        with:
+          repository: 'jshttp/mime-types'
+          ref: '73f9933bfa5247337b459240ec67ea6045cdec84'
+      - name: Run GitHub Action for ORT
+        uses: oss-review-toolkit/ort-ci-github-action/@v1
+        with:
+          allow-dynamic-versions: true
+          ort-config-repository: 'https://github.com/tsteenbe/ort-config'
+          run: >
+            cache-dependencies,
+            labels,
+            analyzer,
+            evaluator,
+            advisor,
+            reporter,
+            upload-results
