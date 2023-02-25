@@ -184,7 +184,7 @@ inputs:
       If empty, $GITHUB_WORKSPACE directory is scanned.
     required: false
   report-formats:
-    default: 'CycloneDx,SpdxDocument,WebApp'
+    default: 'CycloneDx,PlainTextTemplate,SpdxDocument,WebApp'
     description: |
       Comma-separated list of ORT reporters to run.
     required: false
@@ -242,7 +242,7 @@ runs:
           ort-cli: 'sh ${{ env.ORT_CLI }}'
       - uses: ./.github/actions/setup-workspace
         with:
-          http-file-server-password : ${{ inputs.http-file-server-password }}
+          http-file-server-password: ${{ inputs.http-file-server-password }}
           http-file-server-token: ${{ inputs.http-file-server-token }}
           http-file-server-url: ${{ inputs.http-file-server-url }}
           http-file-server-username: ${{ inputs.http-file-server-username }}
@@ -271,6 +271,8 @@ runs:
         if: contains(inputs.run, 'cache-dependencies') && startsWith(runner.os, 'Linux')
       - uses: ./.github/actions/cache-ort-scan-results
         if: contains(inputs.run, 'cache-scan-results') && startsWith(runner.os, 'Linux')
+      - uses: ./.github/actions/setup-scancode
+        if: contains(inputs.run, 'scanner')
       - name: Run ORT Analyzer
         id: ort-analyzer
         shell: bash
@@ -370,8 +372,20 @@ runs:
           -i $ORT_RESULTS_CURRENT_PATH \
           -o $ORT_RESULTS_PATH \
           -f $ORT_REPORT_FORMATS \
+          -O PlainTextTemplate=template.path="${ORT_CONFIG_CI_RUN_TEMPLATE_PATH}" \
           -O SpdxDocument=document.name="${SW_NAME_SAFE}" \
           $ORT_CLI_REPORT_ARGS
+      - name: Create Job Summary
+        shell: bash
+        run: |
+          if [[ -f "$ORT_RESULTS_CI_RUN_SUMMARY" ]]; then
+            echo -e "\e[1;33m Generating job summary..."
+            echo $(<${ORT_RESULTS_CI_RUN_SUMMARY})
+            echo "$(<${ORT_RESULTS_CI_RUN_SUMMARY})" >> $GITHUB_STEP_SUMMARY
+            rm $ORT_RESULTS_CI_RUN_SUMMARY
+          else
+            eecho -e "\e[1;31m Skipping job summary generation, file $ORT_RESULTS_CI_RUN_SUMMARY not found."
+          fi
       - name: Remove current-result.yml file if present
         shell: bash
         run: |

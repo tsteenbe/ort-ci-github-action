@@ -1,4 +1,4 @@
-name: Scan Mime Types
+name: Scan ORTHW - Minimal
 on: 
   workflow_dispatch:
 
@@ -12,17 +12,23 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v3
         with:
-          repository: 'jshttp/mime-types'
-          ref: '73f9933bfa5247337b459240ec67ea6045cdec84'
+          repository: 'oss-review-toolkit/orthw'
+          ref: 'a8af206ad82cca75b4362996f20e7e365c22e182'
       - name: Run GitHub Action for ORT
-        uses: tsteenbe/ort-ci-github-action/@v1.1
+        uses: tsteenbe/ort-ci-github-action/minimal@v1.1
         with:
           allow-dynamic-versions: true
           ort-config-repository: 'https://github.com/tsteenbe/ort-config'
           run: >
+            setup-go
+            setup-java,
+            setup-node,
+            setup-python,
             cache-dependencies,
+            cache-scan-results,
             labels,
             analyzer,
+            scanner,
             evaluator,
             advisor,
             reporter,

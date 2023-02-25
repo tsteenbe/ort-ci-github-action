@@ -21,6 +21,21 @@ description: 'Creates required environment variables and directories.'
 author: 'The ORT Project Authors'
 
 inputs:
+  db-url:
+    default: ''
+    description: |
+      URL of the PostgreSQL database used for caching scan-results and storing file archives.
+    required: false
+  db-username:
+    default: ''
+    description: |
+      Username for the PostgreSQL database used for caching scan-results and storing file archives.
+    required: false
+  db-password:
+    default: ''
+    description: |
+      Password for the PostgreSQL database used for caching scan-results and storing file archives.
+    required: false
   http-file-server-url:
     default: ''
     description: |
@@ -153,10 +168,12 @@ runs:
         mkdir -p $HOME/.rustup/{cache,download,tmp}; chmod -R aug+w ${HOME}/.rustup/ || :
         mkdir -p $HOME/go/; chmod -R aug+w ${HOME}/go/ || :
         export ORT_CONFIG_PATH=${ORT_CONFIG_PATH:-"$HOME/$ORT_HOME_PATH/config"}
+        export ORT_CONFIG_CI_RUN_TEMPLATE_PATH="${ORT_CONFIG_PATH}/text-templates/ci-run-summary.md.ftl"
         export ORT_DATA_DIR=${HOME}/${ORT_HOME_PATH}
         export ORT_RESULTS_PATH="$HOME/$ORT_HOME_PATH/ort-results"
         export ORT_RESULTS_ADVISOR_PATH="${ORT_RESULTS_PATH}/advisor-result.json"
         export ORT_RESULTS_ANALYZER_PATH="${ORT_RESULTS_PATH}/analyzer-result.json"
+        export ORT_RESULTS_CI_RUN_SUMMARY="${ORT_RESULTS_PATH}/ci-run-summary.md"
         export ORT_RESULTS_CURRENT_PATH="${ORT_RESULTS_PATH}/current-result.json"
         export ORT_RESULTS_EVALUATED_MODEL_PATH="${ORT_RESULTS_PATH}/evaluated-model.json"
         export ORT_RESULTS_EVALUATOR_PATH="${ORT_RESULTS_PATH}/evaluation-result.json"

@@ -27,6 +27,9 @@ inputs:
   go-version:
     default: '>=1.18.3'
     required: false
+  haskell-version:
+    default: '8.8.4'
+    required: false
   java-distribution:
     default: 'temurin'
     required: false
@@ -61,7 +64,7 @@ runs:
         if: contains(inputs.run, 'setup-go')
       - uses: haskell/actions/setup@v2
         with:
-          ghc-version: '8.8.4'
+          ghc-version: ${{ inputs.haskell-version }}
           enable-stack: true
         if: contains(inputs.run, 'setup-haskell')
       - uses: actions/setup-java@v3

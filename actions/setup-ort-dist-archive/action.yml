@@ -42,6 +42,6 @@ runs:
           --retry-delay 0 \
           --retry-max-time 30 \
           -Lb ./cookie "https://drive.google.com/uc?export=download&confirm=`awk '/download/ {print $NF}' ./cookie`&id=${FILE_ID}" -o ~/.ort/archive/ort.tar
-        tar -xf $HOME/.ort/archive/ort.tar -C  $HOME/.ort/
+        tar -xf $HOME/.ort/archive/ort.tar -C $HOME/.ort/
         mv $HOME/.ort/ort-* $HOME/.ort/ort
         export ORT_CLI="$HOME/.ort/ort/bin/ort" && printenv >> "$GITHUB_ENV"

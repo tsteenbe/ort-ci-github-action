@@ -1,4 +1,4 @@
-name: Scan odxtools
+name: Scan Influx Client
 
 on: 
   workflow_dispatch:
@@ -13,15 +13,7 @@ jobs:
       - name: Checkout project
         uses: actions/checkout@v3
         with:
-          repository: 'mercedes-benz/odxtools'
-          ref: '18c138ac29085f6dcd680b1a6b6d09e8a2629893'
+          repository: 'influxdata/influxdb-client-go'
+          ref: 'v2.12.1'
       - name: Run GitHub Action for ORT
         uses: tsteenbe/ort-ci-github-action/@v1.1
-        with:
-          run: >
-            cache-dependencies,
-            labels,
-            analyzer,
-            evaluator,
-            reporter,
-            upload-results
