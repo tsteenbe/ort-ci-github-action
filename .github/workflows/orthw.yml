@@ -16,4 +16,11 @@ jobs:
           ref: 'a8af206ad82cca75b4362996f20e7e365c22e182'
       - name: Run GitHub Action for ORT
         uses: tsteenbe/ort-ci-github-action@v1.1
-
+        with:
+          run: >
+            cache-dependencies,
+            labels,
+            analyzer,
+            evaluator,
+            reporter,
+            upload-results

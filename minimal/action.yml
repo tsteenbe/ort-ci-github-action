@@ -224,23 +224,23 @@ runs:
         shell: bash
         run: |
           git config --global url.https://github.com/.insteadOf ssh://git@github.com/
-      - name: Checkout GitHub action for ORT
-        uses: actions/checkout@v3
-        with:
-          path: ./.github/actions/tmp
-      - name: Move helper actions
-        shell: bash
-        run: |
-          mv ./.github/actions/tmp/actions/* ./.github/actions/.
-          rm -rf ./.github/actions/tmp
-      - uses: ./.github/actions/setup-package-managers
+      # - name: Checkout GitHub action for ORT
+      #   uses: actions/checkout@v3
+      #   with:
+      #     path: ./.github/actions/tmp
+      # - name: Move helper actions
+      #   shell: bash
+      #   run: |
+      #     mv ./.github/actions/tmp/actions/* ./.github/actions/.
+      #     rm -rf ./.github/actions/tmp
+      - uses: tsteenbe/ort-ci-github-action/setup-package-managers@v1.1
         with:
           run: ${{ inputs.run }}
-      - uses: ./.github/actions/setup-ort-dist-archive
-      - uses: ./.github/actions/print-ort-version
+      - uses: tsteenbe/ort-ci-github-action/setup-ort-dist-archive@v1.1
+      - uses: tsteenbe/ort-ci-github-action/print-ort-version@v1.1
         with:
           ort-cli: 'sh ${{ env.ORT_CLI }}'
-      - uses: ./.github/actions/setup-workspace
+      - uses: tsteenbe/ort-ci-github-action/setup-workspace@v1.1
         with:
           http-file-server-password: ${{ inputs.http-file-server-password }}
           http-file-server-token: ${{ inputs.http-file-server-token }}
@@ -262,16 +262,16 @@ runs:
           project-path: ${{ inputs.project-path }}
           sw-name: ${{ inputs.sw-name }}
           sw-version: ${{ inputs.sw-version }}
-      - uses: ./.github/actions/setup-ort-config
+      - uses: tsteenbe/ort-ci-github-action/setup-ort-config@v1.1
         with:
           ort-config-path: ${{ env.ORT_CONFIG_PATH }}
           ort-config-repository: ${{ inputs.ort-config-repository }}
           ort-config-revision: ${{ inputs.ort-config-revision }}
-      - uses: ./.github/actions/cache-dependencies
+      - uses: tsteenbe/ort-ci-github-action/cache-dependencies@v1.1
         if: contains(inputs.run, 'cache-dependencies') && startsWith(runner.os, 'Linux')
-      - uses: ./.github/actions/cache-ort-scan-results
+      - uses: tsteenbe/ort-ci-github-action/cache-ort-scan-results@v1.1
         if: contains(inputs.run, 'cache-scan-results') && startsWith(runner.os, 'Linux')
-      - uses: ./.github/actions/setup-scancode
+      - uses: tsteenbe/ort-ci-github-action/setup-scancode@v1.1
         if: contains(inputs.run, 'scanner')
       - name: Run ORT Analyzer
         id: ort-analyzer
