@@ -387,7 +387,7 @@ runs:
             echo "$(<${ORT_RESULTS_CI_RUN_SUMMARY})" >> $GITHUB_STEP_SUMMARY
             rm $ORT_RESULTS_CI_RUN_SUMMARY
           else
-            eecho -e "\e[1;31m Skipping job summary generation, file $ORT_RESULTS_CI_RUN_SUMMARY not found."
+            echo -e "\e[1;31m Skipping job summary generation, file $ORT_RESULTS_CI_RUN_SUMMARY not found."
           fi
       - name: Remove current-result.yml file if present
         shell: bash
